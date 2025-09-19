@@ -1,8 +1,10 @@
 server:
-  port: 8090
+  port: 8087
   servlet:
     context-path: /
 spring:
+  profiles:
+    active: local
   application:
     name: spring-ai-pi
   threads:
