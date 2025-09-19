@@ -1,0 +1,148 @@
+server:
+  port: 8090
+  servlet:
+    context-path: /
+spring:
+  application:
+    name: spring-ai-pi
+  threads:
+    # 开启虚拟线程 仅jdk21可用
+    virtual:
+      enabled: true
+  mvc:
+    format:
+      date-time: yyyy-MM-dd HH:mm:ss
+  jackson:
+    # 日期格式化
+    date-format: yyyy-MM-dd HH:mm:ss
+    serialization:
+      # 格式化输出
+      indent_output: false
+      # 忽略无法转换的对象
+      fail_on_empty_beans: false
+    deserialization:
+      # 允许对象忽略json中不存在的属性
+      fail_on_unknown_properties: false
+  ai:
+    dashscope:
+      api-key: <your api key>
+      chat:
+        options:
+          model: qwen-plus
+    vectorstore:
+      redis:
+        initialize-schema: true
+        prefix: pi_ai
+        index: pi_ai
+  data:
+    redis:
+      host: 127.0.0.1
+      port: 9379
+      # 在Redis 6.0+版本中，默认用户名是 default，所以URI格式为 redis://default:password@host:port
+      username: default
+      password: <your password>
+      timeout: 2000ms
+      database: 0
+      lettuce:
+        pool:
+          max-active: 8
+          max-idle: 8
+          min-idle: 0
+          max-wait: -1ms
+    mongodb:
+      uri: mongodb://127.0.0.1:27017/spring_ai
+      # 连接池优化（高并发场景）
+      options:
+        max-pool-size: 100
+        min-pool-size: 10
+  datasource:
+    driver-class-name: com.mysql.cj.jdbc.Driver
+    url: jdbc:mysql://localhost:3306/spring_ai?useUnicode=true&characterEncoding=utf-8&useSSL=false&allowPublicKeyRetrieval=true&zeroDateTimeBehavior=convertToNull&transformedBitIsBoolean=true&allowMultiQueries=true&tinyInt1isBit=false&allowLoadLocalInfile=true&allowLocalInfile=true&allowUrl
+    username: root
+    password: <your password>
+    type: com.zaxxer.hikari.HikariDataSource # JDBC 连接池类型：HikariCP
+    hikari:
+      connection-timeout: 30000     # 等待连接池分配链接的最大时长（毫秒），超过这个时长还没有可用的连接则发生 SQLException，默认：30 秒
+      minimum-idle: 5               # 最小连接数
+      maximum-pool-size: 20         # 最大连接数
+      auto-commit: true             # 自动提交
+      idle-timeout: 600000          # 连接超时的最大时长（毫秒），超时则被释放（retired），默认：10 分钟
+      pool-name: DataSourceHikariCP # 连接池名称
+      max-lifetime: 1800000         # 连接的生命时长（毫秒），超时而且没被使用则被释放（retired），默认： 30 分钟
+      connection-test-query: select 1
+  redis:
+    redisson:
+      ## Redisson 配置, 需要替换成你的配置
+      file: classpath:redisson.yaml
+
+# springdoc-openapi项目配置
+springdoc:
+  swagger-ui:
+    path: /swagger-ui.html
+    tags-sorter: alpha
+    operations-sorter: alpha
+  api-docs:
+    path: /v3/api-docs
+  group-configs:
+    - group: 'default'
+      paths-to-match: '/**'
+      packages-to-scan: com.springai.pi.controller
+# knife4j的增强配置，不需要增强可以不配
+knife4j:
+  enable: true
+  setting:
+    language: zh_cn
+
+# 修改日志级别，查看 Spring AI 更多调用细节
+logging:
+  level:
+    #    org.redisson: DEBUG
+    #    org.springframework.boot.autoconfigure.data.redis: DEBUG
+    #    org.springframework.data.mongodb.core.MongoTemplate: DEBUG
+    #    org.mongodb.driver.protocol.command: DEBUG
+    #    com.springai.pi.repository: DEBUG
+    org.springframework.ai: DEBUG
+
+# Sa-Token配置
+sa-token:
+  # token名称 (同时也是cookie名称)
+  token-name: Authorization
+  # 是否允许同一账号并发登录 (为true时允许一起登录, 为false时新登录挤掉旧登录)
+  is-concurrent: true
+  # 在多人登录同一账号时，是否共用一个token (为true时所有登录共用一个token, 为false时每次登录新建一个token)
+  is-share: false
+  # jwt秘钥
+  jwt-secret-key: <your jwt secret key>
+  # token前缀
+  token-prefix: "Bearer"
+
+# security配置
+security:
+  # 排除路径
+  excludes:
+    - /*.html
+    - /**/*.html
+    - /**/*.css
+    - /**/*.js
+    - /favicon.ico
+    - /error
+    - /*/api-docs
+    - /*/api-docs/**
+    - /warm-flow-ui/config
+
+# MyBatisPlus配置
+mybatis-plus:
+  # 自定义配置 是否全局开启逻辑删除 关闭后 所有逻辑删除功能将失效
+  enableLogicDelete: true
+  # 多包名使用 例如 org.dromara.**.mapper,org.xxx.**.mapper
+  mapperPackage: com.springai.**.mapper
+  # 对应的 XML 文件位置
+  mapperLocations: classpath*:mapper/**/*Mapper.xml
+  # 实体扫描，多个package用逗号或者分号分隔
+  typeAliasesPackage: com.springai.**.domain
+  global-config:
+    dbConfig:
+      # 主键类型
+      # AUTO 自增 NONE 空 INPUT 用户输入 ASSIGN_ID 雪花 ASSIGN_UUID 唯一 UUID
+      # 如需改为自增 需要将数据库表全部设置为自增
+      idType: ASSIGN_ID

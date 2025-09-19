@@ -1,0 +1,29 @@
+codec: !<org.redisson.codec.Kryo5Codec> {}
+# 线程池数量。默认值: 当前处理核数量 * 2
+threads: 16
+# Netty线程池数量。默认值: 当前处理核数量 * 2
+nettyThreads: 32
+# 传输模式。默认值: NIO
+transportMode: "NIO"
+# 监控锁的看门狗超时，单位：毫秒。默认值: 30000
+lockWatchdogTimeout: 30000
+# 是否保持订阅发布顺序。默认值: true
+keepPubSubOrder: true
+
+# Redisson 单实例配置
+singleServerConfig:
+  # 🔥需要更改成你的配置
+  address: "redis://127.0.0.1:9379"
+  username: default
+  password: 123456
+  database: 1
+  clientName: spring-ai
+  connectTimeout: 10000
+  timeout: 3000
+  retryAttempts: 3
+  retryInterval: 1500
+  connectionMinimumIdleSize: 24
+  subscriptionsPerConnection: 5
+  subscriptionConnectionMinimumIdleSize: 1
+  dnsMonitoringInterval: 5000
+  idleConnectionTimeout: 10000
