@@ -1,6 +1,7 @@
 package com.springai.pi.agent;
 
 import com.springai.pi.repository.CustomMongoDBChatMemoryRepository;
+import com.springai.pi.utils.LoginHelper;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.ai.chat.client.ChatClient;
 import org.springframework.ai.chat.client.advisor.MessageChatMemoryAdvisor;
@@ -13,6 +14,8 @@ import org.springframework.ai.tool.ToolCallback;
 import org.springframework.ai.vectorstore.redis.RedisVectorStore;
 import org.springframework.stereotype.Component;
 import reactor.core.publisher.Flux;
+
+import java.util.Map;
 
 /**
  * @author stef
@@ -60,6 +63,7 @@ public class XiaoPiAgent {
                 .prompt()
                 .user(message)
                 .advisors(spec -> spec.param(ChatMemory.CONVERSATION_ID, chatId))
+                .toolContext(Map.of("userId", LoginHelper.getUserId()))
                 .call()
                 .chatResponse();
         String content = chatResponse.getResult().getOutput().getText();
@@ -73,6 +77,7 @@ public class XiaoPiAgent {
                 .prompt()
                 .user(message)
                 .advisors(spec -> spec.param(ChatMemory.CONVERSATION_ID, chatId))
+                .toolContext(Map.of("userId", LoginHelper.getUserId()))
                 .stream()
                 .content();
     }

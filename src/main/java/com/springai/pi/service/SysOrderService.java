@@ -34,6 +34,8 @@ public class SysOrderService {
 
     private final SysOrderMapper baseMapper;
 
+
+
     public TableDataInfo<SysOrderVo> queryPageList(SysOrderBo bo, PageQuery pageQuery) {
         bo.setUserId(LoginHelper.getUserId());
         LambdaQueryWrapper<SysOrder> lqw = buildQueryWrapper(bo);
@@ -54,6 +56,27 @@ public class SysOrderService {
         return true;
     }
 
+
+    /**
+     * 插入订单, AI Tool 调用
+     *
+     * @param userId
+     * @param bo
+     * @return
+     */
+    public Boolean insert(Long userId, SysOrderBo bo) {
+        // 生成订单号,订单号规则：yyyyMMddHHmmss + 3位随机数
+        String orderNo = DateUtil.format(LocalDateTime.now(), DatePattern.PURE_DATETIME_MS_PATTERN) + RandomUtil.randomNumbers(3);
+        bo.setUserId(userId);
+        bo.setOrderNo(orderNo);
+        SysOrder add = MapstructUtils.convert(bo, SysOrder.class);
+        int insert = baseMapper.insert(add);
+        if (insert == 0) {
+            throw new ServiceException("新增失败");
+        }
+        return true;
+    }
+
     private LambdaQueryWrapper<SysOrder> buildQueryWrapper(SysOrderBo bo) {
         LambdaQueryWrapper<SysOrder> lqw = Wrappers.lambdaQuery();
         lqw.eq(SysOrder::getUserId, bo.getUserId());
@@ -62,5 +85,21 @@ public class SysOrderService {
         lqw.eq(!Objects.isNull(bo.getStatus()), SysOrder::getStatus, bo.getStatus());
         lqw.orderByDesc(SysOrder::getId);
         return lqw;
+    }
+
+    /**
+     * 查询订单列表. AI Tool 调用
+     *
+     * @param userId
+     * @param pageNum
+     * @param pageSize
+     * @return
+     */
+    public Page<SysOrderVo> pageList(Long userId, Integer pageNum, Integer pageSize) {
+        SysOrderBo bo = new SysOrderBo();
+        bo.setUserId(userId);
+        LambdaQueryWrapper<SysOrder> lqw = buildQueryWrapper(bo);
+        PageQuery pageQuery = new PageQuery(pageNum, pageSize);
+        return baseMapper.selectVoPage(pageQuery.build(), lqw);
     }
 }
