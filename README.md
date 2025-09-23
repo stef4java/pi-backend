@@ -4,6 +4,25 @@
 
 智小派（PiAI）是无限派科技有限公司基于Spring AI Alibaba技术栈打造的新一代企业级智能客服系统。该系统深度融合了大语言模型与企业业务场景，为企业提供高效、智能的客户服务解决方案。
 
+## 体验地址:
+http://124.223.11.132:8081/
+账号/密码(也可以自行注册)
+zhangsan/123456
+lisi/123456
+wangwu/123456
+
+登录后，新建会话，可以问AI:
+> 测试AI会话记忆
+你好，介绍下自己
+我叫小明
+我叫什么名字
+> 测试RAG
+有几款产品
+CRM基础版多少钱
+> 测试AI调用业务工具tools
+帮我下单CRM高级版
+我有哪些订单
+
 ## 核心功能
 
 ### 🤖 智能对话引擎
@@ -34,7 +53,7 @@
 ### 系统架构图
 ```
 ┌─────────────────┐    ┌──────────────────┐    ┌─────────────────┐
-│   前端应用      │───▶│   派小智后端     │───▶│  阿里云通义千问 │
+│   前端应用       │───▶│   派小智后端       │───▶│  阿里云通义千问   │
 │  (React/Vue)    │    │ (Spring AI)      │    │   (Qwen)        │
 └─────────────────┘    └──────────────────┘    └─────────────────┘
                               │
@@ -42,11 +61,70 @@
         ▼                     ▼                     ▼
 ┌─────────────────┐   ┌─────────────────┐   ┌─────────────────┐
 │   MongoDB       │   │   MySQL         │   │ Redis-Stack     │
-│ 对话历史存储    │   │ 业务数据存储    │   │ 向量数据库      │
+│ 对话历史存储      │   │ 业务数据存储      │   │ 向量数据库        │
 └─────────────────┘   └─────────────────┘   └─────────────────┘
 ```
 
-## 快速开始(待完善)
+## 快速开始
+### 中间件redis-stack的docker命令
+```sh
+docker run -d --name redis-stack \
+--restart=always  \
+-v $(pwd)/redis-data:/data \
+-p 9379:6379 \
+-e REDIS_ARGS="--requirepass 123456" \
+redis/redis-stack:latest
+```
+注意 为了不和本地的redis端口冲突，这里将redis-stack的端口映射到9379
+
+### mongodb
+```sh
+# 创建数据持久化目录（避免容器重启数据丢失）
+mkdir -p /mnt/mongodb/data 
+```
+```
+docker run -d \
+--name mongodb \
+-p 27017:27017 \
+-v $(pwd)/mongodb/data:/data/db \
+mongo:latest
+```
+### mysql
+```sh
+docker run -d \
+  --name mysql8 \
+  -p 3306:3306 \
+  -e MYSQL_ROOT_PASSWORD=root123456 \
+  -v $(pwd)/mysql/conf:/etc/mysql/conf.d \
+  -v $(pwd)/mysql/data:/var/lib/mysql \
+  --restart unless-stopped \
+  mysql:8.0.20
+```
+```shell
+# 进入容器命令
+docker exec -it mysql8 mysql -uroot -p
+```
+
+### searxng 本地搜索工具
+```
+docker run -p 8088:8080 \
+  --name searxng \
+  -d --restart=always \
+  -v $(pwd)/SearXNG:/etc/searxng \
+  -e "BASE_URL=http://localhost:8080/" \
+  -e "INSTANCE_NAME=searxng-instance" \
+  searxng/searxng:latest
+```
+> 调整配置文件，搜索结果支持json返回：vim $(pwd)/SearXNG/settings.yml
+```
+  # formats: [html, csv, json, rss]
+  formats:
+    - html
+    - json # 🔥新增支持json
+```
+访问： http://localhost:8080/ ,设置搜索引擎为 bing，souhu 等支撑国内的搜索引擎
+测试访问: http://127.0.0.1:8088/search?q=SpringAI&format=json
+
 ### 环境要求
 - JDK 21+
 - Maven 3.8+
@@ -58,8 +136,38 @@
 git clone https://github.com/stef4java/pi-backend.git
 ```
 
-2. 替换配置变量：(待完善)
-```bash
+2. 替换配置变量：
+### 替换`application.yml`中的配置变量
+```yml
+  ai:
+    dashscope:
+      api-key: <your api key>
+
+  data:
+    redis:
+      host: 127.0.0.1
+      port: 9379
+      # 在Redis 6.0+版本中，默认用户名是 default，所以URI格式为 redis://default:password@host:port
+      username: default
+      password: <your password>
+
+    mongodb:
+      uri: mongodb://127.0.0.1:27017/spring_ai
+
+  datasource:
+    driver-class-name: com.mysql.cj.jdbc.Driver
+    url: jdbc:mysql://localhost:3306/spring_ai?useUnicode=true&characterEncoding=utf-8&useSSL=false&allowPublicKeyRetrieval=true&zeroDateTimeBehavior=convertToNull&transformedBitIsBoolean=true&allowMultiQueries=true&tinyInt1isBit=false&allowLoadLocalInfile=true&allowLocalInfile=true&allowUrl
+    username: root
+    password: <your password>
+```
+### 替换`redisson.yml`中的配置变量
+```yml
+# Redisson 单实例配置
+singleServerConfig:
+  # 🔥需要更改成你的配置
+  address: "redis://127.0.0.1:9379"
+  username: default
+  password: 123456
 ```
 
 ### 前端项目
