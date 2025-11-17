@@ -1,9 +1,11 @@
 package com.springai.pi.exception;
 
+import cn.dev33.satoken.exception.NotLoginException;
 import cn.hutool.core.util.ObjectUtil;
 import cn.hutool.http.HttpStatus;
 import com.fasterxml.jackson.core.JsonParseException;
 import com.springai.pi.domain.core.R;
+import com.springai.pi.utils.JsonUtils;
 import com.springai.pi.utils.StreamUtils;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
@@ -54,16 +56,16 @@ public class GlobalExceptionHandler {
         return ObjectUtil.isNotNull(code) ? R.fail(code, e.getMessage()) : R.fail(e.getMessage());
     }
 
-//    /**
-//     * 认证失败
-//     */
-//    @ResponseStatus(org.springframework.http.HttpStatus.UNAUTHORIZED)
-//    @ExceptionHandler(SseException.class)
-//    public String handleNotLoginException(SseException e, HttpServletRequest request) {
-//        String requestURI = request.getRequestURI();
-//        log.debug("请求地址'{}',认证失败'{}',无法访问系统资源", requestURI, e.getMessage());
-//        return JsonUtils.toJsonString(R.fail(HttpStatus.HTTP_UNAUTHORIZED, "认证失败，无法访问系统资源"));
-//    }
+    /**
+     * 认证失败
+     */
+    @ResponseStatus(org.springframework.http.HttpStatus.UNAUTHORIZED)
+    @ExceptionHandler(NotLoginException.class)
+    public String handleNotLoginException(NotLoginException e, HttpServletRequest request) {
+        String requestURI = request.getRequestURI();
+        log.debug("请求地址'{}',认证失败'{}',无法访问系统资源", requestURI, e.getMessage());
+        return JsonUtils.toJsonString(R.fail(HttpStatus.HTTP_UNAUTHORIZED, "认证失败，无法访问系统资源"));
+    }
 
     /**
      * servlet异常
