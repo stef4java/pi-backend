@@ -6,7 +6,7 @@
 
 ## 体验地址:
 ```
-http://124.223.11.132:8081/
+http://124.223.11.132:8082/
 ```
 
 ### 账号/密码(也可以自行注册)
@@ -187,4 +187,5 @@ singleServerConfig:
 
 ## 感谢：
 > 迁移了很多[RuoYi-Vue-Plus]框架代码，感谢作者[RuoYi-Vue-Plus](https://github.com/dromara/RuoYi-Vue-Plus)
+
 > [AI 零代码应用生成平台](https://github.com/liyupi/yu-ai-code-mother)
